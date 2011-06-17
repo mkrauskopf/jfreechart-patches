@@ -437,6 +437,53 @@ public class SpiderWebPlotTests extends TestCase {
         dataset.addValue(135.0, "S2", "C1");
         dataset.addValue(145.0, "S2", "C2");
         dataset.addValue(145.0, "S2", "C3");
+
+        SpiderWebPlot plot = useInPlot(dataset);
+
+        assertEquals(135, plot.getMaxValue(0), 0.1);
+        assertEquals(145, plot.getMaxValue(1), 0.1);
+        assertEquals(145.0, plot.getMaxValue(), 0.1);
+
+        assertEquals(25, plot.getOrigin(0), 0.1);
+        assertEquals(35, plot.getOrigin(1), 0.1);
+        assertEquals(-64, plot.getOrigin(2), 0.1);
+    }
+
+    /**
+     * Test minimum and maximum values for categories.
+     */
+    public void testBoundaryValues2() {
+        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+        dataset.addValue(-1, "S1", "C1");
+        dataset.addValue(5, "S2", "C1");
+        SpiderWebPlot plot = useInPlot(dataset);
+        assertEquals(5, plot.getMaxValue(0), 0.1);
+        assertEquals(5.0, plot.getMaxValue(), 0.1);
+        assertEquals(-1.6, plot.getOrigin(0), 0.1);
+    }
+
+    /**
+     * Test minimum and maximum values for categories.
+     */
+    public void testBoundaryValuesWithOneRow() {
+        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+        dataset.addValue(-0.65, "S1", "C1");
+        SpiderWebPlot plot = useInPlot(dataset);
+        assertEquals(-0.65, plot.getMaxValue(0), 0.0001);
+        assertEquals(-0.65, plot.getMaxValue(), 0.0001);
+        assertEquals(-0.715, plot.getOrigin(0), 0.0001);
+    }
+
+    public void testBoundaryValuesWithOneZeroRow() {
+        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+        dataset.addValue(0, "S1", "C1");
+        SpiderWebPlot plot = useInPlot(dataset);
+        assertEquals(0, plot.getMaxValue(0), 0.0001);
+        assertEquals(0, plot.getMaxValue(), 0.0001);
+        assertEquals(-0.1, plot.getOrigin(0), 0.0001);
+    }
+
+    private SpiderWebPlot useInPlot(DefaultCategoryDataset dataset) {
         SpiderWebPlot plot = new SpiderWebPlot(dataset);
         plot.setUseScalePerCategory(true);
 
@@ -446,14 +493,7 @@ public class SpiderWebPlotTests extends TestCase {
         Graphics2D g2 = image.createGraphics();
         chart.draw(g2, new Rectangle2D.Double(0, 0, 200, 100), null);
         g2.dispose();
-
-        assertEquals(135, plot.getMaxValue(0), 0.1);
-        assertEquals(145, plot.getMaxValue(1), 0.1);
-        assertEquals(145.0, plot.getMaxValue(), 0.1);
-
-        assertEquals(0, plot.getOrigin(0), 0.1);
-        assertEquals(0, plot.getOrigin(1), 0.1);
-        assertEquals(-64, plot.getOrigin(2), 0.1);
+        return plot;
     }
 
 }

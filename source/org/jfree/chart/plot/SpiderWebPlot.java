@@ -1309,29 +1309,40 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
      */
     private void calculateBoundaryValues(int seriesCount, int catCount) {
         for (int catIndex = 0; catIndex < catCount; catIndex++) {
-            double categoryMaxValue = -1;
-            double categoryOrigin = 0;
+            double catMaxVal = -Double.MAX_VALUE;
+            double catMinVal = Double.MAX_VALUE;
             for (int seriesIndex = 0; seriesIndex < seriesCount; seriesIndex++) {
                 Number nV = getPlotValue(seriesIndex, catIndex);
                 if (nV != null) {
                     double v = nV.doubleValue();
-                    if (v > categoryMaxValue) {
-                        categoryMaxValue = v;
+                    if (v > catMaxVal) {
+                        catMaxVal = v;
                     }
-                    if (v < 0 && v < categoryOrigin) {
-                        categoryOrigin = v;
+                    if (v < catMinVal) {
+                        catMinVal = v;
                     }
                 }
             }
-            setMaxValue(catIndex, categoryMaxValue);
-            // shift origin about 10% of the data range from minimum. Otherwise
-            // it would always coincide with the minimum data point
-            if (categoryOrigin < 0) {
-                categoryOrigin -= (categoryMaxValue - categoryOrigin) / 10;
+            setMaxValue(catIndex, catMaxVal);
+            // Ensure that origin of a spoke does not coincide with a data point with minimum value.
+            // Such data point would lost information to which spoke (axis) it belongs since it
+            // would be in the center of the spider plot, i.e. it would "belong" to all spokes.
+            double catOriginShift;
+            if (catMaxVal == catMinVal) {
+                if (catMinVal == 0) {
+                    // all data points at zero
+                    catOriginShift = 0.1;
+                } else {
+                    // all data points at the same value
+                    catOriginShift = Math.abs(catMinVal / 10);
+                }
+            } else {
+                // Shift origin about 10% of the data range from minimum.
+                catOriginShift = Math.abs((catMaxVal - catMinVal) / 10);
             }
-            setOrigin(catIndex, categoryOrigin);
-            if (categoryMaxValue > maxValue) {
-                maxValue = categoryMaxValue;
+            setOrigin(catIndex, catMinVal - catOriginShift);
+            if (catMaxVal > maxValue) {
+                maxValue = catMaxVal;
             }
         }
     }
