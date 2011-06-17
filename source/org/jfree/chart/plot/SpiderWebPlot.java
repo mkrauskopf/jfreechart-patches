@@ -272,6 +272,9 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
     /** A URL generator for the plot (<code>null</code> permitted). */
     private CategoryURLGenerator urlGenerator;
 
+    /** Whether to draw tick marks and labels. */
+    private boolean axisTickVisible;
+
     /**
      * Creates a default plot with no dataset.
      */
@@ -1160,6 +1163,15 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
         fireChangeEvent();
     }
 
+    public boolean isAxisTickVisible() {
+        return axisTickVisible;
+    }
+
+    public void setAxisTickVisible(boolean visible) {
+        this.axisTickVisible = visible;
+        fireChangeEvent();
+    }
+
     /**
      * Returns a collection of legend items for the spider web chart.
      *
@@ -1305,7 +1317,9 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
                 g2.setPaint(this.axisLinePaint);
                 g2.setStroke(this.axisLineStroke);
                 g2.draw(line);
-                drawTicks(g2, radarArea, angle, cat);
+                if (isAxisTickVisible()) {
+                    drawTicks(g2, radarArea, angle, cat);
+                }
                 drawLabel(g2, radarArea, 0.0, cat, angle, 360.0 / catCount);
             }
 
