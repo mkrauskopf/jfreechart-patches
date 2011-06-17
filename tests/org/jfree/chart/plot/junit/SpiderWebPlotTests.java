@@ -426,4 +426,34 @@ public class SpiderWebPlotTests extends TestCase {
         assertEquals(20, plot.getMaxValue(), 0.1);
     }
 
+    /**
+     * Test minimum and maximum values for categories.
+     */
+    public void testBoundaryValues() {
+        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+        dataset.addValue(35.0, "S1", "C1");
+        dataset.addValue(45.0, "S1", "C2");
+        dataset.addValue(-45.0, "S1", "C3");
+        dataset.addValue(135.0, "S2", "C1");
+        dataset.addValue(145.0, "S2", "C2");
+        dataset.addValue(145.0, "S2", "C3");
+        SpiderWebPlot plot = new SpiderWebPlot(dataset);
+        plot.setUseScalePerCategory(true);
+
+        JFreeChart chart = new JFreeChart(plot);
+        BufferedImage image = new BufferedImage(200, 100,
+                BufferedImage.TYPE_INT_RGB);
+        Graphics2D g2 = image.createGraphics();
+        chart.draw(g2, new Rectangle2D.Double(0, 0, 200, 100), null);
+        g2.dispose();
+
+        assertEquals(135, plot.getMaxValue(0), 0.1);
+        assertEquals(145, plot.getMaxValue(1), 0.1);
+        assertEquals(145.0, plot.getMaxValue(), 0.1);
+
+        assertEquals(0, plot.getOrigin(0), 0.1);
+        assertEquals(0, plot.getOrigin(1), 0.1);
+        assertEquals(-64, plot.getOrigin(2), 0.1);
+    }
+
 }

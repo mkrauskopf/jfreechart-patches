@@ -202,6 +202,8 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
 
     private Map/*<Integer, Double>*/ maxValues;
 
+    private Map/*<Integer, Double>*/ origins;
+
     private boolean useScalePerCategory;
 
     /**
@@ -398,9 +400,10 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
         fireChangeEvent();
     }
 
-    public void resetMaxValues() {
+    public void resetBoundaryValues() {
         this.maxValues = null;
         this.maxValue = DEFAULT_MAX_VALUE;
+        this.origins = null;
         fireChangeEvent();
     }
 
@@ -529,6 +532,11 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
         return ((Double) catMaxValue).doubleValue();
     }
 
+    public double getOrigin(int cat) {
+        Object catOrigin = origins.get(new Integer(cat));
+        return ((Double) catOrigin).doubleValue();
+    }
+
     /**
      * Sets the maximum value any category axis can take and sends
      * a {@link PlotChangeEvent} to all registered listeners.
@@ -547,6 +555,14 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
             maxValues = new HashMap();
         }
         maxValues.put(new Integer(series), new Double(value));
+        fireChangeEvent();
+    }
+
+    public void setOrigin(int series, double value) {
+        if (origins == null) {
+            origins = new HashMap();
+        }
+        origins.put(new Integer(series), new Double(value));
         fireChangeEvent();
     }
 
@@ -1225,7 +1241,10 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
 
             // ensure we have a maximum value to use on the axes
             if (this.maxValues == null) {
-                calculateMaxValues(seriesCount, catCount);
+                if (this.origins != null) {
+                    throw new IllegalStateException("origins must be also null");
+                }
+                calculateBoundaryValues(seriesCount, catCount);
             }
 
             // Next, setup the plot area
@@ -1288,9 +1307,10 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
      * @param seriesCount  the number of series
      * @param catCount  the number of categories
      */
-    private void calculateMaxValues(int seriesCount, int catCount) {
+    private void calculateBoundaryValues(int seriesCount, int catCount) {
         for (int catIndex = 0; catIndex < catCount; catIndex++) {
             double categoryMaxValue = -1;
+            double categoryOrigin = 0;
             for (int seriesIndex = 0; seriesIndex < seriesCount; seriesIndex++) {
                 Number nV = getPlotValue(seriesIndex, catIndex);
                 if (nV != null) {
@@ -1298,9 +1318,18 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
                     if (v > categoryMaxValue) {
                         categoryMaxValue = v;
                     }
+                    if (v < 0 && v < categoryOrigin) {
+                        categoryOrigin = v;
+                    }
                 }
             }
             setMaxValue(catIndex, categoryMaxValue);
+            // shift origin about 10% of the data range from minimum. Otherwise
+            // it would always coincide with the minimum data point
+            if (categoryOrigin < 0) {
+                categoryOrigin -= (categoryMaxValue - categoryOrigin) / 10;
+            }
+            setOrigin(catIndex, categoryOrigin);
             if (categoryMaxValue > maxValue) {
                 maxValue = categoryMaxValue;
             }
@@ -1341,77 +1370,77 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
             if (dataValue != null) {
                 double value = dataValue.doubleValue();
 
-                if (value >= 0) { // draw the polygon series...
+                // Finds our starting angle from the centre for this axis
 
-                    // Finds our starting angle from the centre for this axis
+                double angle = getStartAngle()
+                    + (getDirection().getFactor() * cat * 360 / catCount);
 
-                    double angle = getStartAngle()
-                        + (getDirection().getFactor() * cat * 360 / catCount);
+                // The following angle calc will ensure there isn't a top
+                // vertical axis - this may be useful if you don't want any
+                // given criteria to 'appear' move important than the
+                // others..
+                //  + (getDirection().getFactor()
+                //        * (cat + 0.5) * 360 / catCount);
 
-                    // The following angle calc will ensure there isn't a top
-                    // vertical axis - this may be useful if you don't want any
-                    // given criteria to 'appear' move important than the
-                    // others..
-                    //  + (getDirection().getFactor()
-                    //        * (cat + 0.5) * 360 / catCount);
+                // find the point at the appropriate distance end point
+                // along the axis/angle identified above and add it to the
+                // polygon
 
-                    // find the point at the appropriate distance end point
-                    // along the axis/angle identified above and add it to the
-                    // polygon
+                double maxValue = useScalePerCategory
+                        ? getMaxValue(cat) : getMaxValue();
+                double origin = useScalePerCategory ? getOrigin(cat) : 0;
+                // if we have negative values place axis origin at the
+                // minimum value
+                Point2D point = getWebPoint(plotArea, angle,
+                        (value - origin) / (maxValue - origin));
+                polygon.addPoint((int) point.getX(), (int) point.getY());
 
-                    double maxValue = useScalePerCategory ? getMaxValue(cat) : getMaxValue();
-                    Point2D point = getWebPoint(plotArea, angle,
-                            value / maxValue);
-                    polygon.addPoint((int) point.getX(), (int) point.getY());
+                // put an elipse at the point being plotted..
 
-                    // put an elipse at the point being plotted..
+                Paint paint = getSeriesPaint(series);
+                Paint outlinePaint = getSeriesOutlinePaint(series);
+                Stroke outlineStroke = getSeriesOutlineStroke(series);
 
-                    Paint paint = getSeriesPaint(series);
-                    Paint outlinePaint = getSeriesOutlinePaint(series);
-                    Stroke outlineStroke = getSeriesOutlineStroke(series);
+                Ellipse2D head = new Ellipse2D.Double(point.getX()
+                        - headW / 2, point.getY() - headH / 2, headW,
+                        headH);
+                g2.setPaint(paint);
+                g2.fill(head);
+                g2.setStroke(outlineStroke);
+                g2.setPaint(outlinePaint);
+                g2.draw(head);
 
-                    Ellipse2D head = new Ellipse2D.Double(point.getX()
-                            - headW / 2, point.getY() - headH / 2, headW,
-                            headH);
-                    g2.setPaint(paint);
-                    g2.fill(head);
-                    g2.setStroke(outlineStroke);
-                    g2.setPaint(outlinePaint);
-                    g2.draw(head);
-
-                    if (entities != null) {
-                        int row = 0; int col = 0;
-                        if (this.dataExtractOrder == TableOrder.BY_ROW) {
-                            row = series;
-                            col = cat;
-                        }
-                        else {
-                            row = cat;
-                            col = series;
-                        }
-                        String tip = null;
-                        if (this.toolTipGenerator != null) {
-                            tip = this.toolTipGenerator.generateToolTip(
-                                    this.dataset, row, col);
-                        }
-
-                        String url = null;
-                        if (this.urlGenerator != null) {
-                            url = this.urlGenerator.generateURL(this.dataset,
-                                   row, col);
-                        }
-
-                        Shape area = new Rectangle(
-                                (int) (point.getX() - headW),
-                                (int) (point.getY() - headH),
-                                (int) (headW * 2), (int) (headH * 2));
-                        CategoryItemEntity entity = new CategoryItemEntity(
-                                area, tip, url, this.dataset,
-                                this.dataset.getRowKey(row),
-                                this.dataset.getColumnKey(col));
-                        entities.add(entity);
+                if (entities != null) {
+                    int row = 0; int col = 0;
+                    if (this.dataExtractOrder == TableOrder.BY_ROW) {
+                        row = series;
+                        col = cat;
+                    }
+                    else {
+                        row = cat;
+                        col = series;
+                    }
+                    String tip = null;
+                    if (this.toolTipGenerator != null) {
+                        tip = this.toolTipGenerator.generateToolTip(
+                                this.dataset, row, col);
                     }
 
+                    String url = null;
+                    if (this.urlGenerator != null) {
+                        url = this.urlGenerator.generateURL(this.dataset,
+                               row, col);
+                    }
+
+                    Shape area = new Rectangle(
+                            (int) (point.getX() - headW),
+                            (int) (point.getY() - headH),
+                            (int) (headW * 2), (int) (headH * 2));
+                    CategoryItemEntity entity = new CategoryItemEntity(
+                            area, tip, url, this.dataset,
+                            this.dataset.getRowKey(row),
+                            this.dataset.getColumnKey(col));
+                    entities.add(entity);
                 }
             }
         }
@@ -1578,6 +1607,9 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
             return false;
         }
         if (!ObjectUtilities.equal(this.maxValues, that.maxValues)) {
+            return false;
+        }
+        if (!ObjectUtilities.equal(this.origins, that.origins)) {
             return false;
         }
         if (this.webFilled != that.webFilled) {
