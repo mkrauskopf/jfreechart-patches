@@ -412,13 +412,7 @@ public class SpiderWebPlotTests extends TestCase {
         dataset.addValue(145.0, "S2", "C2");
         SpiderWebPlot plot = new SpiderWebPlot(dataset);
         assertEquals(-1, plot.getMaxValue(), 0.1);
-
-        JFreeChart chart = new JFreeChart(plot);
-        BufferedImage image = new BufferedImage(200, 100,
-                BufferedImage.TYPE_INT_RGB);
-        Graphics2D g2 = image.createGraphics();
-        chart.draw(g2, new Rectangle2D.Double(0, 0, 200, 100), null);
-        g2.dispose();
+        drawPlot(plot);
 
         assertEquals(145.0, plot.getMaxValue(), 0.1);
 
@@ -444,9 +438,9 @@ public class SpiderWebPlotTests extends TestCase {
         assertEquals(145, plot.getMaxValue(1), 0.1);
         assertEquals(145.0, plot.getMaxValue(), 0.1);
 
-        assertEquals(25, plot.getOrigin(0), 0.1);
-        assertEquals(35, plot.getOrigin(1), 0.1);
-        assertEquals(-64, plot.getOrigin(2), 0.1);
+        assertEquals(25, plot.getOrigin(0).doubleValue(), 0.1);
+        assertEquals(35, plot.getOrigin(1).doubleValue(), 0.1);
+        assertEquals(-64, plot.getOrigin(2).doubleValue(), 0.1);
     }
 
     /**
@@ -459,7 +453,7 @@ public class SpiderWebPlotTests extends TestCase {
         SpiderWebPlot plot = useInPlot(dataset);
         assertEquals(5, plot.getMaxValue(0), 0.1);
         assertEquals(5.0, plot.getMaxValue(), 0.1);
-        assertEquals(-1.6, plot.getOrigin(0), 0.1);
+        assertEquals(-1.6, plot.getOrigin(0).doubleValue(), 0.1);
     }
 
     /**
@@ -471,7 +465,7 @@ public class SpiderWebPlotTests extends TestCase {
         SpiderWebPlot plot = useInPlot(dataset);
         assertEquals(-0.65, plot.getMaxValue(0), 0.0001);
         assertEquals(-0.65, plot.getMaxValue(), 0.0001);
-        assertEquals(-0.715, plot.getOrigin(0), 0.0001);
+        assertEquals(-0.715, plot.getOrigin(0).doubleValue(), 0.0001);
     }
 
     public void testBoundaryValuesWithOneZeroRow() {
@@ -480,20 +474,46 @@ public class SpiderWebPlotTests extends TestCase {
         SpiderWebPlot plot = useInPlot(dataset);
         assertEquals(0, plot.getMaxValue(0), 0.0001);
         assertEquals(0, plot.getMaxValue(), 0.0001);
-        assertEquals(-0.1, plot.getOrigin(0), 0.0001);
+        assertEquals(-0.1, plot.getOrigin(0).doubleValue(), 0.0001);
+    }
+
+    public void testDifferentOrigins() {
+        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+        dataset.addValue(10.0, "S1", "C1");
+        dataset.addValue(10.0, "S1", "C2");
+        dataset.addValue(5.0, "S1", "C3");
+        dataset.addValue(100.0, "S2", "C1");
+        dataset.addValue(100.0, "S2", "C2");
+        dataset.addValue(55.0, "S2", "C3");
+
+        SpiderWebPlot plot = new SpiderWebPlot(dataset);
+        plot.setUseScalePerCategory(true);
+        plot.setOrigin(0, null);
+        plot.setOrigin(1, new Double(-10d));
+        plot.setOrigin(2, null);
+        plot.resetBoundaryValues();
+
+        drawPlot(plot);
+
+        assertEquals(1, plot.getOrigin(0).doubleValue(), 0.1);
+        assertEquals(-10, plot.getOrigin(1).doubleValue(), 0.1);
+        assertEquals(0, plot.getOrigin(2).doubleValue(), 0.1);
     }
 
     private SpiderWebPlot useInPlot(DefaultCategoryDataset dataset) {
         SpiderWebPlot plot = new SpiderWebPlot(dataset);
         plot.setUseScalePerCategory(true);
+        drawPlot(plot);
+        return plot;
+    }
 
+    private void drawPlot(SpiderWebPlot plot) {
         JFreeChart chart = new JFreeChart(plot);
         BufferedImage image = new BufferedImage(200, 100,
                 BufferedImage.TYPE_INT_RGB);
         Graphics2D g2 = image.createGraphics();
         chart.draw(g2, new Rectangle2D.Double(0, 0, 200, 100), null);
         g2.dispose();
-        return plot;
     }
 
 }
