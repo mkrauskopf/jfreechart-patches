@@ -1320,7 +1320,7 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
                 if (isAxisTickVisible()) {
                     drawTicks(g2, radarArea, angle, cat);
                 }
-                drawLabel(g2, radarArea, 0.0, cat, angle, 360.0 / catCount);
+                drawLabel(g2, area, radarArea, 0.0, cat, angle, 360.0 / catCount);
             }
 
             // Now actually plot each of the series polygons..
@@ -1361,11 +1361,7 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
             double _axisAngle,
             int cat,
             double tick) {
-        double axisAngle = _axisAngle % 360;
-        if (axisAngle < 0) {
-            axisAngle += 360;
-        }
-
+        double axisAngle = normalize(_axisAngle);
         double _origin = getOrigin(cat).doubleValue();
         double max = getMaxValue(cat).doubleValue();
         double tickValue = ((max - _origin) * tick) + _origin;
@@ -1406,6 +1402,8 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
             labelX -= (charWidth * cosGap / 2);
         }
 //        g2.drawRect((int) labelX, (int) labelY - labelH, labelW, labelH); // test rectangle
+        g2.setPaint(getLabelPaint());
+        g2.setFont(getLabelFont());
         g2.drawString(label, (float) labelX, (float) labelY);
     }
 
@@ -1642,13 +1640,15 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
      * Draws the label for one axis.
      *
      * @param g2  the graphics device.
-     * @param plotArea  the plot area
+     * @param plotArea  whole plot drawing area (e.g. including space for labels)
+     * @param plotDrawingArea  the plot drawing area (just spanning of axis)
      * @param value  the value of the label (ignored).
      * @param cat  the category (zero-based index).
      * @param startAngle  the starting angle.
      * @param extent  the extent of the arc.
      */
-    protected void drawLabel(Graphics2D g2, Rectangle2D plotArea, double value,
+    protected void drawLabel(Graphics2D g2, Rectangle2D plotArea,
+                             Rectangle2D plotDrawingArea, double value,
                              int cat, double startAngle, double extent) {
         FontRenderContext frc = g2.getFontRenderContext();
 
@@ -1662,19 +1662,35 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
             label = this.labelGenerator.generateRowLabel(this.dataset, cat);
         }
 
-        Rectangle2D labelBounds = getLabelFont().getStringBounds(label, frc);
-        LineMetrics lm = getLabelFont().getLineMetrics(label, frc);
-        double ascent = lm.getAscent();
+        double angle = normalize(startAngle);
 
-        Point2D labelLocation = calculateLabelLocation(labelBounds, ascent,
-                plotArea, startAngle);
+        Font font = getLabelFont();
+        Point2D labelLocation;
+        do {
+            Rectangle2D labelBounds = font.getStringBounds(label, frc);
+            LineMetrics lm = font.getLineMetrics(label, frc);
+            double ascent = lm.getAscent();
+
+            labelLocation = calculateLabelLocation(labelBounds, ascent,
+                    plotDrawingArea, startAngle);
+
+            boolean leftOut = angle > 90 && angle < 270 && labelLocation.getX() < plotArea.getX();
+            boolean rightOut = (angle < 90 || angle > 270) &&
+                    labelLocation.getX() + labelBounds.getWidth() > plotArea.getX() + plotArea.getWidth();
+
+            if (leftOut || rightOut) {
+                font = font.deriveFont(font.getSize2D() - 1);
+            } else {
+                break;
+            }
+        } while (font.getSize() > 8);
 
         Composite saveComposite = g2.getComposite();
 
         g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
                 1.0f));
         g2.setPaint(getLabelPaint());
-        g2.setFont(getLabelFont());
+        g2.setFont(font);
         g2.drawString(label, (float) labelLocation.getX(),
                 (float) labelLocation.getY());
         g2.setComposite(saveComposite);
@@ -1719,6 +1735,14 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
         }
 
         return new Point2D.Double(labelX, labelY);
+    }
+
+    private double normalize(double _axisAngle) {
+        double axisAngle = _axisAngle % 360;
+        if (axisAngle < 0) {
+            axisAngle += 360;
+        }
+        return axisAngle;
     }
 
     /**
