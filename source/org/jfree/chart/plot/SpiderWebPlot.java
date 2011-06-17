@@ -165,6 +165,12 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
     /** The default series label shadow paint. */
     public static final Paint  DEFAULT_LABEL_SHADOW_PAINT = Color.lightGray;
 
+    /**
+     * Length of the tick mark.
+     * (hardcoded for now, to be customizable in the future).
+     */
+    private static final double TICK_MARK_LENGTH = 6d;
+
     /** The head radius as a percentage of the available drawing area. */
     protected double headPercent;
 
@@ -1299,6 +1305,7 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
                 g2.setPaint(this.axisLinePaint);
                 g2.setStroke(this.axisLineStroke);
                 g2.draw(line);
+                drawTicks(g2, radarArea, angle, cat);
                 drawLabel(g2, radarArea, 0.0, cat, angle, 360.0 / catCount);
             }
 
@@ -1314,6 +1321,78 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
         g2.setClip(savedClip);
         g2.setComposite(originalComposite);
         drawOutline(g2, area);
+    }
+
+    private void drawTicks(Graphics2D g2, Rectangle2D radarArea, double axisAngle, int cat) {
+        double[] ticks = {0.5d, 1d};
+        for (int i = 0; i < ticks.length; i++) {
+            double tick = ticks[i];
+            Point2D middlePoint = getWebPoint(radarArea, axisAngle, tick);
+            double xt = middlePoint.getX();
+            double yt = middlePoint.getY();
+            double angrad = Math.toRadians(-axisAngle);
+            g2.translate(xt, yt);
+            g2.rotate(angrad);
+            g2.drawLine(0, (int) -TICK_MARK_LENGTH / 2, 0, (int) TICK_MARK_LENGTH / 2);
+            g2.rotate(-angrad);
+            g2.translate(-xt, -yt);
+            drawTickLabel(g2, radarArea, middlePoint, axisAngle, cat, tick);
+        }
+    }
+
+    private void drawTickLabel(
+            Graphics2D g2,
+            Rectangle2D radarArea,
+            Point2D middlePoint,
+            double _axisAngle,
+            int cat,
+            double tick) {
+        double axisAngle = _axisAngle % 360;
+        if (axisAngle < 0) {
+            axisAngle += 360;
+        }
+
+        double _origin = getOrigin(cat).doubleValue();
+        double max = getMaxValue(cat).doubleValue();
+        double tickValue = ((max - _origin) * tick) + _origin;
+        String label = "" + Math.round(tickValue * 1000) / 1000d;
+        FontRenderContext frc = g2.getFontRenderContext();
+        Rectangle2D labelBounds = getLabelFont().getStringBounds(label, frc);
+        int labelW = (int) labelBounds.getWidth();
+        int labelH = (int) labelBounds.getHeight();
+
+        double centerX = radarArea.getCenterX();
+        double centerY = radarArea.getCenterY();
+
+        double adj = middlePoint.distance(centerX, centerY);
+        double opp = TICK_MARK_LENGTH / 2 + 4;
+        double hyp = Math.sqrt(Math.pow(opp, 2) + Math.pow(adj, 2));
+        double angle = Math.toDegrees(Math.atan(opp / adj));
+        int charHeight = g2.getFontMetrics().getHeight();
+        int charWidth = g2.getFontMetrics().charWidth('M');
+
+        double alphaRad = Math.toRadians(axisAngle - angle);
+        double labelX = centerX + (hyp * Math.cos(alphaRad));
+        double labelY = centerY - (hyp * Math.sin(alphaRad)) + labelH;
+
+//        g2.draw(new Line2D.Double(centerX, centerY, labelX, labelY - labelH)); // test line
+
+        double sinGap = Math.pow(Math.sin(Math.toRadians(axisAngle)), 2);
+        if (axisAngle > 90 && axisAngle < 270) {
+            labelY -= labelH;
+            labelY += (charHeight * sinGap / 2);
+        } else {
+            labelY -= (charHeight * sinGap / 2);
+        }
+        double cosGap = Math.pow(Math.cos(Math.toRadians(axisAngle)), 2);
+        if (axisAngle > 180) {
+            labelX -= labelW;
+            labelX += (charWidth * cosGap / 2);
+        } else {
+            labelX -= (charWidth * cosGap / 2);
+        }
+//        g2.drawRect((int) labelX, (int) labelY - labelH, labelW, labelH); // test rectangle
+        g2.drawString(label, (float) labelX, (float) labelY);
     }
 
     /**
