@@ -398,6 +398,12 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
         fireChangeEvent();
     }
 
+    public void resetMaxValues() {
+        this.maxValues = null;
+        this.maxValue = DEFAULT_MAX_VALUE;
+        fireChangeEvent();
+    }
+
     /**
      * Method to determine if the web chart is to be filled.
      *
@@ -519,7 +525,8 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
     }
 
     public double getMaxValue(int cat) {
-        return ((Double) maxValues.get(new Integer(cat))).doubleValue();
+        Object catMaxValue = maxValues.get(new Integer(cat));
+        return ((Double) catMaxValue).doubleValue();
     }
 
     /**
@@ -1220,7 +1227,6 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
             if (this.maxValues == null) {
                 calculateMaxValues(seriesCount, catCount);
             }
-            System.out.println("maxValues = " + maxValues);
 
             // Next, setup the plot area
 
