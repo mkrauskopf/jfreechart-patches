@@ -86,7 +86,6 @@ import java.awt.BasicStroke;
 import java.awt.GradientPaint;
 import java.awt.Graphics2D;
 import java.awt.Paint;
-import java.awt.Polygon;
 import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.geom.Area;
@@ -537,25 +536,27 @@ public class XYAreaRenderer extends AbstractXYItemRenderer
                 plot.getRangeAxisEdge());
         GeneralPath hotspot = new GeneralPath();
         if (plot.getOrientation() == PlotOrientation.HORIZONTAL) {
-            hotspot.moveTo(transZero,
+            moveTo(hotspot, transZero,
                     ((transX0 + transX1) / 2.0));
-            hotspot.lineTo(((transY0 + transY1) / 2.0),
+            moveTo(hotspot, transZero,
                     ((transX0 + transX1) / 2.0));
-            hotspot.lineTo(transY1, transX1);
-            hotspot.lineTo(((transY1 + transY2) / 2.0),
+            lineTo(hotspot, ((transY0 + transY1) / 2.0),
+                    ((transX0 + transX1) / 2.0));
+            lineTo(hotspot, transY1, transX1);
+            lineTo(hotspot, ((transY1 + transY2) / 2.0),
                     ((transX1 + transX2) / 2.0));
-            hotspot.lineTo(transZero,
+            lineTo(hotspot, transZero,
                     ((transX1 + transX2) / 2.0));
         }
         else {  // vertical orientation
-            hotspot.moveTo(((transX0 + transX1) / 2.0),
+            moveTo(hotspot, ((transX0 + transX1) / 2.0),
                     transZero);
-            hotspot.lineTo(((transX0 + transX1) / 2.0),
+            lineTo(hotspot, ((transX0 + transX1) / 2.0),
                     ((transY0 + transY1) / 2.0));
-            hotspot.lineTo(transX1, transY1);
-            hotspot.lineTo(((transX1 + transX2) / 2.0),
+            lineTo(hotspot, transX1, transY1);
+            lineTo(hotspot, ((transX1 + transX2) / 2.0),
                     ((transY1 + transY2) / 2.0));
-            hotspot.lineTo(((transX1 + transX2) / 2.0),
+            lineTo(hotspot, ((transX1 + transX2) / 2.0),
                     transZero);
         }
         hotspot.closePath();
@@ -566,19 +567,19 @@ public class XYAreaRenderer extends AbstractXYItemRenderer
             double zero = rangeAxis.valueToJava2D(0.0, dataArea,
                     plot.getRangeAxisEdge());
             if (plot.getOrientation() == PlotOrientation.VERTICAL) {
-                areaState.area.moveTo(transX1, zero);
+                moveTo(areaState.area, transX1, zero);
             }
             else if (plot.getOrientation() == PlotOrientation.HORIZONTAL) {
-                areaState.area.moveTo(zero, transX1);
+                moveTo(areaState.area, zero, transX1);
             }
         }
 
         // Add each point to Area (x, y)
         if (plot.getOrientation() == PlotOrientation.VERTICAL) {
-            areaState.area.lineTo(transX1, transY1);
+            lineTo(areaState.area, transX1, transY1);
         }
         else if (plot.getOrientation() == PlotOrientation.HORIZONTAL) {
-            areaState.area.lineTo(transY1, transX1);
+            lineTo(areaState.area, transY1, transX1);
         }
 
         PlotOrientation orientation = plot.getOrientation();
@@ -619,12 +620,12 @@ public class XYAreaRenderer extends AbstractXYItemRenderer
 
             if (orientation == PlotOrientation.VERTICAL) {
                 // Add the last point (x,0)
-                areaState.area.lineTo(transX1, transZero);
+                lineTo(areaState.area, transX1, transZero);
                 areaState.area.closePath();
             }
             else if (orientation == PlotOrientation.HORIZONTAL) {
                 // Add the last point (x,0)
-                areaState.area.lineTo(transZero, transX1);
+                lineTo(areaState.area, transZero, transX1);
                 areaState.area.closePath();
             }
 

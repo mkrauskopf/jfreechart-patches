@@ -346,25 +346,25 @@ public class XYAreaRenderer2 extends AbstractXYItemRenderer
                 plot.getRangeAxisEdge());
         GeneralPath hotspot = new GeneralPath();
         if (plot.getOrientation() == PlotOrientation.HORIZONTAL) {
-            hotspot.moveTo(transZero,
+            moveTo(hotspot, transZero,
                     ((transX0 + transX1) / 2.0));
-            hotspot.lineTo(((transY0 + transY1) / 2.0),
+            lineTo(hotspot, ((transY0 + transY1) / 2.0),
                     ((transX0 + transX1) / 2.0));
-            hotspot.lineTo(transY1, transX1);
-            hotspot.lineTo(((transY1 + transY2) / 2.0),
+            lineTo(hotspot, transY1, transX1);
+            lineTo(hotspot, ((transY1 + transY2) / 2.0),
                     ((transX1 + transX2) / 2.0));
-            hotspot.lineTo(transZero,
+            lineTo(hotspot, transZero,
                     ((transX1 + transX2) / 2.0));
         }
         else {  // vertical orientation
-            hotspot.moveTo(((transX0 + transX1) / 2.0),
+            moveTo(hotspot, ((transX0 + transX1) / 2.0),
                     transZero);
-            hotspot.lineTo(((transX0 + transX1) / 2.0),
+            lineTo(hotspot, ((transX0 + transX1) / 2.0),
                     ((transY0 + transY1) / 2.0));
-            hotspot.lineTo(transX1, transY1);
-            hotspot.lineTo(((transX1 + transX2) / 2.0),
+            lineTo(hotspot, transX1, transY1);
+            lineTo(hotspot, ((transX1 + transX2) / 2.0),
                     ((transY1 + transY2) / 2.0));
-            hotspot.lineTo(((transX1 + transX2) / 2.0),
+            lineTo(hotspot, ((transX1 + transX2) / 2.0),
                     transZero);
         }
         hotspot.closePath();
