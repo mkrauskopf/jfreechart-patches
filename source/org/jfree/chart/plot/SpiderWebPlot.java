@@ -1561,8 +1561,8 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
                 if (greater) {
                     value = _maxValue;
                 }
-                Point2D point = getWebPoint(plotArea, angle,
-                        (value - _origin) / (_maxValue - _origin));
+                double length = _maxValue == _origin ? 0 : (value - _origin) / (_maxValue - _origin);
+                Point2D point = getWebPoint(plotArea, angle, length);
                 polygon.addPoint((int) point.getX(), (int) point.getY());
 
                 Paint paint = getSeriesPaint(series);
