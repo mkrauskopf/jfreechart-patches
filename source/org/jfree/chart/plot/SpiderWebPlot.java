@@ -1415,9 +1415,11 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
             }
             double catDataMaxVal = -Double.MAX_VALUE;
             double catDataMinVal = Double.MAX_VALUE;
+            boolean hasValues = false;
             for (int seriesIndex = 0; seriesIndex < seriesCount; seriesIndex++) {
                 Number nV = getPlotValue(seriesIndex, catIndex);
                 if (nV != null) {
+                    hasValues = true;
                     double v = nV.doubleValue();
                     if (v > catDataMaxVal) {
                         catDataMaxVal = v;
@@ -1426,6 +1428,11 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
                         catDataMinVal = v;
                     }
                 }
+            }
+            if (!hasValues) {
+                setMaxValue(catIndex, new Double(0));
+                setOrigin(catIndex, new Double(0));
+                continue;
             }
 
             if (preferredCatMax == null) {
@@ -1452,6 +1459,11 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
                 }
                 preferredCatOrigin = new Double(catDataMinVal - catOriginShift);
                 setOrigin(catIndex, preferredCatOrigin);
+            }
+
+            double prefOrigin = preferredCatOrigin.doubleValue();
+            if (prefOrigin > preferredCatMax.doubleValue()) {
+                setMaxValue(catIndex, new Double(prefOrigin + Math.abs(prefOrigin/2)));
             }
         }
     }
