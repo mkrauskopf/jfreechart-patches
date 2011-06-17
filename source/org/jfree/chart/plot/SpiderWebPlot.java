@@ -1476,8 +1476,14 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
             }
 
             double prefOrigin = preferredCatOrigin.doubleValue();
-            if (prefOrigin > preferredCatMax.doubleValue()) {
-                setMaxValue(catIndex, new Double(prefOrigin + Math.abs(prefOrigin/2)));
+            double prefMax = preferredCatMax.doubleValue();
+             // special case. Min, max and all values are zero.
+            if (prefOrigin == 0 && prefMax == 0) {
+                prefMax = 0.1;
+                setMaxValue(catIndex, new Double(prefMax));
+            }
+            if (prefOrigin >= prefMax) {
+                setMaxValue(catIndex, new Double(prefOrigin + Math.abs(prefOrigin / 2)));
             }
         }
     }

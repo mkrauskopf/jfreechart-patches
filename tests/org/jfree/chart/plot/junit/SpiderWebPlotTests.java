@@ -477,6 +477,18 @@ public class SpiderWebPlotTests extends TestCase {
         assertEquals(-0.1, plot.getOrigin(0).doubleValue(), 0.0001);
     }
 
+    public void testAllValuesAndPreferredOriginZero() {
+        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+        dataset.addValue(0, "S1", "C1");
+        SpiderWebPlot plot = new SpiderWebPlot(dataset);
+        plot.setOrigin(0, new Double(0));
+
+        drawPlot(plot);
+
+        assertEquals(0.1, plot.getMaxValue(0).doubleValue(), 0.0001);
+        assertEquals(0, plot.getOrigin(0).doubleValue(), 0.0001);
+    }
+
     public void testDifferentOrigins() {
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
         dataset.addValue(10.0, "S1", "C1");
