@@ -65,7 +65,7 @@
  * 02-Jun-2008 : Fixed bug with chart entities using TableOrder.BY_COLUMN (DG);
  * 02-Jun-2008 : Fixed bug with null dataset (DG);
  * 01-Jun-2009 : Set series key in getLegendItems() (DG);
- * 
+ *
  */
 
 package org.jfree.chart.plot;
@@ -92,8 +92,10 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.jfree.chart.LegendItem;
 import org.jfree.chart.LegendItemCollection;
@@ -197,6 +199,10 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
 
     /** The maximum value we are plotting against on each category axis */
     private double maxValue;
+
+    private Map/*<Integer, Double>*/ maxValues;
+
+    private boolean useScalePerCategory;
 
     /**
      * The data extract order (BY_ROW or BY_COLUMN). This denotes whether
@@ -372,6 +378,27 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
     }
 
     /**
+     * Returns whether scale for axis of the plot use the same or are
+     * independent.
+     *
+     * @see #setUseScalePerCategory(boolean)
+     */
+    public boolean isUseScalePerCategory() {
+        return useScalePerCategory;
+    }
+
+    /**
+     * Sets the flag whether scale for axis of the plot shall be the same or
+     * independent.
+     *
+     * @see #isUseScalePerCategory(boolean)
+     */
+    public void setUseScalePerCategory(boolean useScalePerCategory) {
+        this.useScalePerCategory = useScalePerCategory;
+        fireChangeEvent();
+    }
+
+    /**
      * Method to determine if the web chart is to be filled.
      *
      * @return A boolean.
@@ -491,6 +518,10 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
         return this.maxValue;
     }
 
+    public double getMaxValue(int cat) {
+        return ((Double) maxValues.get(new Integer(cat))).doubleValue();
+    }
+
     /**
      * Sets the maximum value any category axis can take and sends
      * a {@link PlotChangeEvent} to all registered listeners.
@@ -501,6 +532,14 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
      */
     public void setMaxValue(double value) {
         this.maxValue = value;
+        fireChangeEvent();
+    }
+
+    public void setMaxValue(int series, double value) {
+        if (maxValues == null) {
+            maxValues = new HashMap();
+        }
+        maxValues.put(new Integer(series), new Double(value));
         fireChangeEvent();
     }
 
@@ -1091,7 +1130,7 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
         if (keys == null) {
             return result;
         }
-        
+
         int series = 0;
         Iterator iterator = keys.iterator();
         Shape shape = getLegendItemShape();
@@ -1178,8 +1217,10 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
             }
 
             // ensure we have a maximum value to use on the axes
-            if (this.maxValue == DEFAULT_MAX_VALUE)
-                calculateMaxValue(seriesCount, catCount);
+            if (this.maxValues == null) {
+                calculateMaxValues(seriesCount, catCount);
+            }
+            System.out.println("maxValues = " + maxValues);
 
             // Next, setup the plot area
 
@@ -1235,25 +1276,27 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
     }
 
     /**
-     * loop through each of the series to get the maximum value
-     * on each category axis
+     * Loop through each of the series to get the maximum value
+     * on each category axis.
      *
      * @param seriesCount  the number of series
      * @param catCount  the number of categories
      */
-    private void calculateMaxValue(int seriesCount, int catCount) {
-        double v = 0;
-        Number nV = null;
-
-        for (int seriesIndex = 0; seriesIndex < seriesCount; seriesIndex++) {
-            for (int catIndex = 0; catIndex < catCount; catIndex++) {
-                nV = getPlotValue(seriesIndex, catIndex);
+    private void calculateMaxValues(int seriesCount, int catCount) {
+        for (int catIndex = 0; catIndex < catCount; catIndex++) {
+            double categoryMaxValue = -1;
+            for (int seriesIndex = 0; seriesIndex < seriesCount; seriesIndex++) {
+                Number nV = getPlotValue(seriesIndex, catIndex);
                 if (nV != null) {
-                    v = nV.doubleValue();
-                    if (v > this.maxValue) {
-                        this.maxValue = v;
+                    double v = nV.doubleValue();
+                    if (v > categoryMaxValue) {
+                        categoryMaxValue = v;
                     }
                 }
+            }
+            setMaxValue(catIndex, categoryMaxValue);
+            if (categoryMaxValue > maxValue) {
+                maxValue = categoryMaxValue;
             }
         }
     }
@@ -1310,8 +1353,9 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
                     // along the axis/angle identified above and add it to the
                     // polygon
 
+                    double maxValue = useScalePerCategory ? getMaxValue(cat) : getMaxValue();
                     Point2D point = getWebPoint(plotArea, angle,
-                            value / this.maxValue);
+                            value / maxValue);
                     polygon.addPoint((int) point.getX(), (int) point.getY());
 
                     // put an elipse at the point being plotted..
@@ -1525,6 +1569,9 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
             return false;
         }
         if (this.maxValue != that.maxValue) {
+            return false;
+        }
+        if (!ObjectUtilities.equal(this.maxValues, that.maxValues)) {
             return false;
         }
         if (this.webFilled != that.webFilled) {

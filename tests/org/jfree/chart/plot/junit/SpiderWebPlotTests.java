@@ -401,4 +401,29 @@ public class SpiderWebPlotTests extends TestCase {
         assertEquals(0, item2.getDatasetIndex());
     }
 
+    /**
+     * Test maximum values for categories.
+     */
+    public void testMaxValue() {
+        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+        dataset.addValue(35.0, "S1", "C1");
+        dataset.addValue(45.0, "S1", "C2");
+        dataset.addValue(135.0, "S2", "C1");
+        dataset.addValue(145.0, "S2", "C2");
+        SpiderWebPlot plot = new SpiderWebPlot(dataset);
+        assertEquals(-1, plot.getMaxValue(), 0.1);
+
+        JFreeChart chart = new JFreeChart(plot);
+        BufferedImage image = new BufferedImage(200, 100,
+                BufferedImage.TYPE_INT_RGB);
+        Graphics2D g2 = image.createGraphics();
+        chart.draw(g2, new Rectangle2D.Double(0, 0, 200, 100), null);
+        g2.dispose();
+
+        assertEquals(145.0, plot.getMaxValue(), 0.1);
+
+        plot.setMaxValue(20);
+        assertEquals(20, plot.getMaxValue(), 0.1);
+    }
+
 }
