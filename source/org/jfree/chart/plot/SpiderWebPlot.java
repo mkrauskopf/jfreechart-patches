@@ -174,6 +174,9 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
     /** The head radius as a percentage of the available drawing area. */
     protected double headPercent;
 
+    /** Stroke to be used for head drawing. */
+    protected Stroke headOutlineStroke;
+
     /** The space left around the outside of the plot as a percentage. */
     private double interiorGap;
 
@@ -483,6 +486,32 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
     public void setHeadPercent(double percent) {
         this.headPercent = percent;
         fireChangeEvent();
+    }
+
+    /**
+     * Sets the head outline stroke for all series. When <code>null</code>
+     * {@link #getSeriesOutlineStroke(int)} is used. Sends a {@link
+     * PlotChangeEvent} to all registered listeners.
+     *
+     * @param headOutlineStroke head outline stroke
+     */
+    public void setHeadOutlineStroke(Stroke headOutlineStroke) {
+        this.headOutlineStroke = headOutlineStroke;
+        fireChangeEvent();
+    }
+
+    /**
+     * Returns the head outline stroke.
+     *
+     * @return head outline stroke.
+     */
+    public Stroke getHeadOutlineStroke() {
+        return headOutlineStroke;
+    }
+
+    private Stroke getHeadOutlineStroke(int series) {
+        return headOutlineStroke == null
+                ? getSeriesOutlineStroke(series) : headOutlineStroke;
     }
 
     /**
@@ -1163,7 +1192,7 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
             String description = label;
             Paint paint = getSeriesPaint(series);
             Paint outlinePaint = getSeriesOutlinePaint(series);
-            Stroke stroke = getSeriesOutlineStroke(series);
+            Stroke stroke = getHeadOutlineStroke(series);
             LegendItem item = new LegendItem(label, description,
                     null, null, shape, paint, stroke, outlinePaint);
             item.setDataset(getDataset());
@@ -1410,14 +1439,13 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
 
                 Paint paint = getSeriesPaint(series);
                 Paint outlinePaint = getSeriesOutlinePaint(series);
-                Stroke outlineStroke = getSeriesOutlineStroke(series);
 
                 Ellipse2D head = new Ellipse2D.Double(point.getX()
                         - headW / 2, point.getY() - headH / 2, headW,
                         headH);
                 g2.setPaint(paint);
                 g2.fill(head);
-                g2.setStroke(outlineStroke);
+                g2.setStroke(getHeadOutlineStroke(series));
                 g2.setPaint(outlinePaint);
                 g2.draw(head);
 
