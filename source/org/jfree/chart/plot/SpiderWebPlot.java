@@ -275,6 +275,9 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
     /** Whether to draw tick marks and labels. */
     private boolean axisTickVisible;
 
+    /** Whether to draw data point with values of out of axis range. */
+    private boolean drawOutOfRangePoints;
+
     /**
      * Creates a default plot with no dataset.
      */
@@ -1172,6 +1175,15 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
         fireChangeEvent();
     }
 
+    public boolean isDrawOutOfRangePoints() {
+        return drawOutOfRangePoints;
+    }
+
+    public void setDrawOutOfRangePoints(boolean drawOutOfRangePoints) {
+        this.drawOutOfRangePoints = drawOutOfRangePoints;
+        fireChangeEvent();
+    }
+
     /**
      * Returns a collection of legend items for the spider web chart.
      *
@@ -1538,26 +1550,43 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
 
                 double _maxValue = getMaxValue(cat).doubleValue();
                 double _origin = getOrigin(cat).doubleValue();
-                if (value < _origin || value > _maxValue) {
+                boolean lesser = value < _origin;
+                boolean greater = value > _maxValue;
+                if ((lesser || greater) && !drawOutOfRangePoints) {
                     continue;
+                }
+                if (lesser) {
+                    value = _origin;
+                }
+                if (greater) {
+                    value = _maxValue;
                 }
                 Point2D point = getWebPoint(plotArea, angle,
                         (value - _origin) / (_maxValue - _origin));
                 polygon.addPoint((int) point.getX(), (int) point.getY());
 
-                // put an elipse at the point being plotted..
-
                 Paint paint = getSeriesPaint(series);
                 Paint outlinePaint = getSeriesOutlinePaint(series);
 
-                Ellipse2D head = new Ellipse2D.Double(point.getX()
-                        - headW / 2, point.getY() - headH / 2, headW,
-                        headH);
+                double px = point.getX();
+                double py = point.getY();
                 g2.setPaint(paint);
-                g2.fill(head);
-                g2.setStroke(getHeadOutlineStroke(series));
-                g2.setPaint(outlinePaint);
-                g2.draw(head);
+                if (lesser || greater) {
+                    // user crosshair for out-of-range data points distinguish
+                    g2.setStroke(new BasicStroke(1.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_BEVEL));
+                    double delta = 3;
+                    g2.draw(new Line2D.Double(px - delta, py, px + delta, py));
+                    g2.draw(new Line2D.Double(px, py - delta, px, py + delta));
+                } else {
+                    // put an elipse at the point being plotted..
+                    Ellipse2D head = new Ellipse2D.Double(
+                            px - headW / 2, py - headH / 2,
+                            headW, headH);
+                    g2.fill(head);
+                    g2.setStroke(getHeadOutlineStroke(series));
+                    g2.setPaint(outlinePaint);
+                    g2.draw(head);
+                }
 
                 if (entities != null) {
                     int row = 0; int col = 0;
@@ -1922,4 +1951,11 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
         }
     }
 
+    /**
+     * TODO: Copy-paste from DefaultDrawingSupplier. Consider to put into some
+     * utility class.
+     */
+    private static int[] intArray(double a, double b, double c) {
+        return new int[]{(int) a, (int) b, (int) c};
+    }
 }
