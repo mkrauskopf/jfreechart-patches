@@ -165,12 +165,6 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
     /** The default series label shadow paint. */
     public static final Paint  DEFAULT_LABEL_SHADOW_PAINT = Color.lightGray;
 
-    /**
-     * The default maximum value plotted - forces the plot to evaluate
-     *  the maximum from the data passed in
-     */
-    public static final double DEFAULT_MAX_VALUE = -1.0;
-
     /** The head radius as a percentage of the available drawing area. */
     protected double headPercent;
 
@@ -201,7 +195,7 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
     private CategoryDataset dataset;
 
     /** The maximum value we are plotting against on each category axis */
-    private double maxValue;
+    private Double maxValue;
 
     private Map/*<Integer, Double>*/ maxValues;
 
@@ -209,8 +203,6 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
     private Double origin;
 
     private Map/*<Integer, Double>*/ origins;
-
-    private boolean useScalePerCategory;
 
     /**
      * The data extract order (BY_ROW or BY_COLUMN). This denotes whether
@@ -317,7 +309,6 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
         this.interiorGap = DEFAULT_INTERIOR_GAP;
         this.startAngle = DEFAULT_START_ANGLE;
         this.direction = Rotation.CLOCKWISE;
-        this.maxValue = DEFAULT_MAX_VALUE;
 
         this.seriesPaint = null;
         this.seriesPaintList = new PaintList();
@@ -338,6 +329,7 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
         this.legendItemShape = DEFAULT_LEGEND_ITEM_CIRCLE;
 
         this.origins = new HashMap();
+        this.maxValues = new HashMap();
     }
 
     /**
@@ -383,35 +375,15 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
             dataset.addChangeListener(this);
         }
 
+        resetBoundaryValues();
+
         // send a dataset change event to self to trigger plot change event
         datasetChanged(new DatasetChangeEvent(this, dataset));
     }
 
-    /**
-     * Returns whether scale for axis of the plot use the same or are
-     * independent.
-     *
-     * @see #setUseScalePerCategory(boolean)
-     */
-    public boolean isUseScalePerCategory() {
-        return useScalePerCategory;
-    }
-
-    /**
-     * Sets the flag whether scale for axis of the plot shall be the same or
-     * independent.
-     *
-     * @see #isUseScalePerCategory(boolean)
-     */
-    public void setUseScalePerCategory(boolean useScalePerCategory) {
-        this.useScalePerCategory = useScalePerCategory;
-        fireChangeEvent();
-    }
-
-    public void resetBoundaryValues() {
-        this.maxValues = null;
-        this.maxValue = DEFAULT_MAX_VALUE;
-        fireChangeEvent();
+    private void resetBoundaryValues() {
+        this.maxValues.clear();
+        this.origins.clear();
     }
 
     /**
@@ -550,39 +522,44 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
     }
 
     /**
-     * Returns the maximum value any category axis can take.
+     * Returns the maximum value which is used for all categories.
      *
      * @return The maximum value.
      *
-     * @see #setMaxValue(double)
+     * @see #setMaxValue(Double)
      */
-    public double getMaxValue() {
+    public Double getMaxValue() {
         return this.maxValue;
     }
 
-    public double getMaxValue(int cat) {
-        Object catMaxValue = maxValues.get(new Integer(cat));
-        return ((Double) catMaxValue).doubleValue();
+    /**
+     * Returns maximum value for a particular category.
+     *
+     * @return The maximum value.
+     *
+     * @see #setMaxValue(Double)
+     */
+    public Double getMaxValue(int cat) {
+        return maxValue == null ? (Double) maxValues.get(new Integer(cat)) : maxValue;
     }
 
     /**
-     * Sets the maximum value any category axis can take and sends
-     * a {@link PlotChangeEvent} to all registered listeners.
+     * Sets the maxValue for <em>all</em> series in the plot. If this is set to
+     * <code>null</code>, then a list of maxValues is used instead (to allow
+     * different maxValues to be used for each series).
      *
-     * @param value  the maximum value.
-     *
-     * @see #getMaxValue()
+     * @param maxValue the maxValue (<code>null</code> permitted).
      */
-    public void setMaxValue(double value) {
-        this.maxValue = value;
+    public void setMaxValue(Double maxValue) {
+        this.maxValue = maxValue;
         fireChangeEvent();
     }
 
-    public void setMaxValue(int series, double value) {
-        if (maxValues == null) {
-            maxValues = new HashMap();
-        }
-        maxValues.put(new Integer(series), new Double(value));
+    /**
+     * Sets maximum value for category.
+     */
+    public void setMaxValue(int cat, Double value) {
+        maxValues.put(new Integer(cat), value);
         fireChangeEvent();
     }
 
@@ -590,17 +567,20 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
         return origin == null ? (Double) origins.get(new Integer(cat)) : origin;
     }
 
-    public void setOrigin(int series, Double value) {
-        origins.put(new Integer(series), value);
+    /**
+     * Sets origin for category.
+     */
+    public void setOrigin(int cat, Double value) {
+        origins.put(new Integer(cat), value);
         fireChangeEvent();
     }
 
     /**
-     * Sets the origin <em>all</em> series in the plot. If this is set to
-     * </code>null</code>, then a list of origins is used instead (to allow
+     * Sets the origin for <em>all</em> series in the plot. If this is set to
+     * <code>null</code>, then a list of origins is used instead (to allow
      * different origins to be used for each series).
      *
-     * @param paint the origin (<code>null</code> permitted).
+     * @param origin the origin (<code>null</code> permitted).
      */
     public void setOrigin(Double origin) {
         this.origin = origin;
@@ -1280,10 +1260,8 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
                 catCount = this.dataset.getRowCount();
             }
 
-            // ensure we have a maximum value to use on the axes
-            if (this.maxValues == null) {
-                calculateBoundaryValues(seriesCount, catCount);
-            }
+            // ensure we have origin and maximum value for each axis
+            ensureBoundaryValues(seriesCount, catCount);
 
             // Next, setup the plot area
 
@@ -1345,47 +1323,56 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
      * @param seriesCount  the number of series
      * @param catCount  the number of categories
      */
-    private void calculateBoundaryValues(int seriesCount, int catCount) {
+    private void ensureBoundaryValues(int seriesCount, int catCount) {
+        // base origin and maxVaue are used
+        if (origin != null && maxValue != null) {
+            return;
+        }
         for (int catIndex = 0; catIndex < catCount; catIndex++) {
-            double catMaxVal = -Double.MAX_VALUE;
-            double catMinVal = Double.MAX_VALUE;
+            Double preferredCatMax = getMaxValue(catIndex);
+            Double preferredCatOrigin = getOrigin(catIndex);
+            if (preferredCatOrigin != null && preferredCatMax != null) {
+                continue; // already set per category
+            }
+            double catDataMaxVal = -Double.MAX_VALUE;
+            double catDataMinVal = Double.MAX_VALUE;
             for (int seriesIndex = 0; seriesIndex < seriesCount; seriesIndex++) {
                 Number nV = getPlotValue(seriesIndex, catIndex);
                 if (nV != null) {
                     double v = nV.doubleValue();
-                    if (v > catMaxVal) {
-                        catMaxVal = v;
+                    if (v > catDataMaxVal) {
+                        catDataMaxVal = v;
                     }
-                    if (v < catMinVal) {
-                        catMinVal = v;
+                    if (v < catDataMinVal) {
+                        catDataMinVal = v;
                     }
                 }
             }
-            setMaxValue(catIndex, catMaxVal);
-            if (catMaxVal > maxValue) {
-                maxValue = catMaxVal;
+
+            if (preferredCatMax == null) {
+                preferredCatMax = new Double(catDataMaxVal);
+                setMaxValue(catIndex, preferredCatMax);
             }
 
-            Double catOrigin = getOrigin(catIndex);
             // Ensure that origin of a spoke does not coincide with a data point with minimum value.
             // Such data point would lost information to which spoke (axis) it belongs since it
             // would be in the center of the spider plot, i.e. it would "belong" to all spokes.
-            if (catOrigin == null) {
+            if (preferredCatOrigin == null) {
                 double catOriginShift;
-                if (catMaxVal == catMinVal) {
-                    if (catMinVal == 0) {
+                if (catDataMaxVal == catDataMinVal) {
+                    if (catDataMinVal == 0) {
                         // all data points at zero
                         catOriginShift = 0.1;
                     } else {
                         // all data points at the same value
-                        catOriginShift = Math.abs(catMinVal / 10);
+                        catOriginShift = Math.abs(catDataMinVal / 10);
                     }
                 } else {
                     // Shift origin about 10% of the data range from minimum.
-                    catOriginShift = Math.abs((catMaxVal - catMinVal) / 10);
+                    catOriginShift = Math.abs((catDataMaxVal - catDataMinVal) / 10);
                 }
-                catOrigin = new Double(catMinVal - catOriginShift);
-                setOrigin(catIndex, catOrigin);
+                preferredCatOrigin = new Double(catDataMinVal - catOriginShift);
+                setOrigin(catIndex, preferredCatOrigin);
             }
         }
     }
@@ -1440,16 +1427,13 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
                 // along the axis/angle identified above and add it to the
                 // polygon
 
-                double _maxValue = useScalePerCategory
-                        ? getMaxValue(cat) : getMaxValue();
-                double origin = useScalePerCategory ? getOrigin(cat).doubleValue() : 0;
-                if (value < origin) {
+                double _maxValue = getMaxValue(cat).doubleValue();
+                double _origin = getOrigin(cat).doubleValue();
+                if (value < _origin || value > _maxValue) {
                     continue;
                 }
-                // if we have negative values place axis origin at the
-                // minimum value
                 Point2D point = getWebPoint(plotArea, angle,
-                        (value - origin) / (_maxValue - origin));
+                        (value - _origin) / (_maxValue - _origin));
                 polygon.addPoint((int) point.getX(), (int) point.getY());
 
                 // put an elipse at the point being plotted..
@@ -1659,7 +1643,7 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
         if (!this.direction.equals(that.direction)) {
             return false;
         }
-        if (this.maxValue != that.maxValue) {
+        if (!ObjectUtilities.equal(this.maxValue, that.maxValue)) {
             return false;
         }
         if (!ObjectUtilities.equal(this.maxValues, that.maxValues)) {

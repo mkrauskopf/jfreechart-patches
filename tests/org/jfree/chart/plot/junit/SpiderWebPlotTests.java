@@ -138,9 +138,9 @@ public class SpiderWebPlotTests extends TestCase {
         assertTrue(p1.equals(p2));
 
         // maxValue
-        p1.setMaxValue(123.4);
+        p1.setMaxValue(new Double(123.4));
         assertFalse(p1.equals(p2));
-        p2.setMaxValue(123.4);
+        p2.setMaxValue(new Double(123.4));
         assertTrue(p1.equals(p2));
 
         // legendItemShape
@@ -411,13 +411,13 @@ public class SpiderWebPlotTests extends TestCase {
         dataset.addValue(135.0, "S2", "C1");
         dataset.addValue(145.0, "S2", "C2");
         SpiderWebPlot plot = new SpiderWebPlot(dataset);
-        assertEquals(-1, plot.getMaxValue(), 0.1);
+        plot.setMaxValue(new Double(145));
         drawPlot(plot);
 
-        assertEquals(145.0, plot.getMaxValue(), 0.1);
+        assertEquals(145.0, plot.getMaxValue().doubleValue(), 0.1);
 
-        plot.setMaxValue(20);
-        assertEquals(20, plot.getMaxValue(), 0.1);
+        plot.setMaxValue(new Double(20));
+        assertEquals(20, plot.getMaxValue().doubleValue(), 0.1);
     }
 
     /**
@@ -434,9 +434,9 @@ public class SpiderWebPlotTests extends TestCase {
 
         SpiderWebPlot plot = useInPlot(dataset);
 
-        assertEquals(135, plot.getMaxValue(0), 0.1);
-        assertEquals(145, plot.getMaxValue(1), 0.1);
-        assertEquals(145.0, plot.getMaxValue(), 0.1);
+        assertEquals(135, plot.getMaxValue(0).doubleValue(), 0.1);
+        assertEquals(145, plot.getMaxValue(1).doubleValue(), 0.1);
+        assertNull(plot.getMaxValue());
 
         assertEquals(25, plot.getOrigin(0).doubleValue(), 0.1);
         assertEquals(35, plot.getOrigin(1).doubleValue(), 0.1);
@@ -451,8 +451,8 @@ public class SpiderWebPlotTests extends TestCase {
         dataset.addValue(-1, "S1", "C1");
         dataset.addValue(5, "S2", "C1");
         SpiderWebPlot plot = useInPlot(dataset);
-        assertEquals(5, plot.getMaxValue(0), 0.1);
-        assertEquals(5.0, plot.getMaxValue(), 0.1);
+        assertEquals(5, plot.getMaxValue(0).doubleValue(), 0.1);
+        assertNull(plot.getMaxValue());
         assertEquals(-1.6, plot.getOrigin(0).doubleValue(), 0.1);
     }
 
@@ -463,8 +463,8 @@ public class SpiderWebPlotTests extends TestCase {
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
         dataset.addValue(-0.65, "S1", "C1");
         SpiderWebPlot plot = useInPlot(dataset);
-        assertEquals(-0.65, plot.getMaxValue(0), 0.0001);
-        assertEquals(-0.65, plot.getMaxValue(), 0.0001);
+        assertNull(plot.getMaxValue());
+        assertEquals(-0.65, plot.getMaxValue(0).doubleValue(), 0.0001);
         assertEquals(-0.715, plot.getOrigin(0).doubleValue(), 0.0001);
     }
 
@@ -472,8 +472,8 @@ public class SpiderWebPlotTests extends TestCase {
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
         dataset.addValue(0, "S1", "C1");
         SpiderWebPlot plot = useInPlot(dataset);
-        assertEquals(0, plot.getMaxValue(0), 0.0001);
-        assertEquals(0, plot.getMaxValue(), 0.0001);
+        assertNull(plot.getMaxValue());
+        assertEquals(0, plot.getMaxValue(0).doubleValue(), 0.0001);
         assertEquals(-0.1, plot.getOrigin(0).doubleValue(), 0.0001);
     }
 
@@ -487,11 +487,9 @@ public class SpiderWebPlotTests extends TestCase {
         dataset.addValue(55.0, "S2", "C3");
 
         SpiderWebPlot plot = new SpiderWebPlot(dataset);
-        plot.setUseScalePerCategory(true);
         plot.setOrigin(0, null);
         plot.setOrigin(1, new Double(-10d));
         plot.setOrigin(2, null);
-        plot.resetBoundaryValues();
 
         drawPlot(plot);
 
@@ -502,7 +500,6 @@ public class SpiderWebPlotTests extends TestCase {
 
     private SpiderWebPlot useInPlot(DefaultCategoryDataset dataset) {
         SpiderWebPlot plot = new SpiderWebPlot(dataset);
-        plot.setUseScalePerCategory(true);
         drawPlot(plot);
         return plot;
     }
