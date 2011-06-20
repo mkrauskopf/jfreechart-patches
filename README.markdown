@@ -1,3 +1,5 @@
+Description
+===========
 jfreechart-patches project contains [bunch of patches](#patch_list) against [JFreeChart][] project.
 
   [JFreeChart]: http://www.jfree.org/jfreechart/ "JFreeChart"
@@ -6,9 +8,13 @@ The reason for founding this project is recent inactivity in JFreeChart project.
 in JFreeChart issue tracker (in combination with local repository) is cumbersome when number of
 patches grows.
 
+Since the patches are mainly against spider web plot so far I've decided to not forking whole JFreeChart repository
+(which has ~40MB) but only changed classes. This might possibly turn out as a unwise decision in which case I'll
+switch to complete fork.
+
 
 List of patches
----------------
+===============
 * Radar chart (spider web plot) enhancements:
     * setting origin and maximum for each axis independently
     * support for negative values
