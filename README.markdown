@@ -20,8 +20,7 @@ List of patches
 
     Screenshot of radar chart with new features:
 
-    ![Radar Chart](https://github.com/mkrauskopf/jfreechart-patches/blob/jfreechart-1.0.x/docs/images/radar-chart.png)
-
+    ![Radar Chart](https://github.com/mkrauskopf/jfreechart-patches/raw/jfreechart-1.0.x/docs/images/radar-chart.png)
 * JDK 1.4 compatibility
 * update of NetBeans project metadata
 
