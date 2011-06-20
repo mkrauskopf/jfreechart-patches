@@ -8,9 +8,9 @@ The reason for founding this project is recent inactivity in JFreeChart project.
 in JFreeChart issue tracker (in combination with local repository) is cumbersome when number of
 patches grows.
 
-Since the patches are mainly against spider web plot so far I've decided to not forking whole JFreeChart repository
-(which has ~40MB) but only changed classes. This might possibly turn out as a unwise decision in which case I'll
-switch to complete fork.
+Since the patches are mainly against spider web plot so far (that is just a few classes) I've decided to not
+forking whole JFreeChart repository (which has ~40MB) but only changed classes. This might possibly turn out as
+a unwise decision in which case I'll switch to complete fork.
 
 
 List of patches
