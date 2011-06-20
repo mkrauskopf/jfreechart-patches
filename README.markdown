@@ -17,6 +17,8 @@ List of patches
     * drawing data points with values which are out of axis range. Such data points are drawn as cross-hair at
       axis range boundary (origin or maximum).
     * reversing axis direction (so far for explicit range only)
+    * auto-adjusting font-size for axis labels (see "Valence Electrons" and "Electric Conductivity" in the
+      screenshot below for an example)
 
     Screenshot of radar chart with new features:
 
