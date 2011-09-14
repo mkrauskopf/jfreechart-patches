@@ -841,11 +841,11 @@ public class BoxAndWhiskerRenderer extends AbstractCategoryItemRenderer
             }
             // draw the upper shadow...
             g2.draw(new Line2D.Double(xxmid, yyMax, xxmid, yyQ3));
-            g2.draw(new Line2D.Double(xx - halfW, yyMax, xx + halfW, yyMax));
+            g2.draw(new Line2D.Double(xxmid - halfW, yyMax, xxmid + halfW, yyMax));
 
             // draw the lower shadow...
             g2.draw(new Line2D.Double(xxmid, yyMin, xxmid, yyQ1));
-            g2.draw(new Line2D.Double(xx - halfW, yyMin, xx + halfW, yyMin));
+            g2.draw(new Line2D.Double(xxmid - halfW, yyMin, xxmid + halfW, yyMin));
 
             g2.setStroke(getItemOutlineStroke(row, column));
             g2.setPaint(outlinePaint);
