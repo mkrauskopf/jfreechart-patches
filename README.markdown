@@ -31,4 +31,6 @@ List of patches
     ![Radar Chart](https://github.com/mkrauskopf/jfreechart-patches/raw/jfreechart-1.0.x/docs/images/radar-chart.png)
 * JDK 1.4 compatibility
 * update of NetBeans project metadata
+* fix wrongly painted (left-shifted) minimum and maximum lines in box plot
+* fix Ant _test_ target and make tests compilable
 
