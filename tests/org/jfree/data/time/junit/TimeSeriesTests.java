@@ -49,7 +49,7 @@
  * 26-May-2009 : Added various tests for min/maxY values (DG);
  * 09-Jun-2009 : Added testAdd_TimeSeriesDataItem (DG);
  * 31-Aug-2009 : Added new test for createCopy() method (DG);
- * 
+ *
  */
 
 package org.jfree.data.time.junit;
@@ -609,7 +609,7 @@ public class TimeSeriesTests extends TestCase implements SeriesChangeListener {
         s1.add(new Year(2011), 102.0);
         assertEquals(100.0, s1.getMinY(), EPSILON);
         assertEquals(102.0, s1.getMaxY(), EPSILON);
-        
+
         TimeSeries s2 = s1.createCopy(0, 1);
         assertEquals(100.0, s2.getMinY(), EPSILON);
         assertEquals(101.0, s2.getMaxY(), EPSILON);
@@ -1097,9 +1097,9 @@ public class TimeSeriesTests extends TestCase implements SeriesChangeListener {
         s1.add(new Year(2010), 1.1);
         s1.add(new Year(2011), 2.2);
         s1.add(new Year(2012), 3.3);
-        s1.update(new Year(2012), 4.4);
+        s1.update(new Year(2012), new Double(4.4));
         assertEquals(4.4, s1.getMaxY(), EPSILON);
-        s1.update(new Year(2010), 0.5);
+        s1.update(new Year(2010), new Double(0.5));
         assertEquals(0.5, s1.getMinY(), EPSILON);
         s1.update(new Year(2012), null);
         assertEquals(2.2, s1.getMaxY(), EPSILON);

@@ -164,12 +164,12 @@ public class XYShapeRendererTests extends TestCase {
     }
 
     /**
-     * Check if finding the bounds in z-dimension of an XYZDataset works. 
+     * Check if finding the bounds in z-dimension of an XYZDataset works.
      */
     public void testFindZBounds() {
         XYShapeRenderer r = new XYShapeRenderer();
         assertNull(r.findZBounds(null));
-        
+
         DefaultXYZDataset dataset = new DefaultXYZDataset();
         Range range;
 
@@ -177,23 +177,23 @@ public class XYShapeRendererTests extends TestCase {
         dataset.addSeries("series1", data1);
         range = r.findZBounds(dataset);
         assertNotNull(range);
-        assertEquals(1d, range.getLowerBound());
-        assertEquals(3d, range.getUpperBound());
+        assertEquals(1d, range.getLowerBound(), 1e-3);
+        assertEquals(3d, range.getUpperBound(), 1e-3);
 
         double data2[][] = { {1,1,1}, {1,1,1}, {-1,-2,-3} };
         dataset.removeSeries("series1");
         dataset.addSeries("series2", data2);
         range = r.findZBounds(dataset);
         assertNotNull(range);
-        assertEquals(-3d, range.getLowerBound());
-        assertEquals(-1d, range.getUpperBound());
+        assertEquals(-3d, range.getLowerBound(), 1e-3);
+        assertEquals(-1d, range.getUpperBound(), 1e-3);
 
         double data3[][] = { {1,1,1}, {1,1,1}, {-1.2,2.9,3.8} };
         dataset.removeSeries("series2");
         dataset.addSeries("series3", data3);
         range = r.findZBounds(dataset);
         assertNotNull(range);
-        assertEquals(-1.2d, range.getLowerBound());
-        assertEquals(3.8d, range.getUpperBound());
+        assertEquals(-1.2d, range.getLowerBound(), 1e-3);
+        assertEquals(3.8d, range.getUpperBound(), 1e-3);
     }
 }

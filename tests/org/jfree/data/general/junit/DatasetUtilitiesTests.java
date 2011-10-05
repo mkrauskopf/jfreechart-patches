@@ -41,7 +41,7 @@
  * 03-Feb-2005 : Added testFindStackedRangeBounds2() method (DG);
  * 26-Sep-2007 : Added testIsEmptyOrNullXYDataset() method (DG);
  * 28-Mar-2008 : Added and renamed various tests (DG);
- * 08-Oct-2008 : New tests to support patch 2131001 and related 
+ * 08-Oct-2008 : New tests to support patch 2131001 and related
  *               changes (DG);
  * 25-Mar-2009 : Added tests for new iterateToFindRangeBounds() method (DG);
  * 16-May-2009 : Added
@@ -1038,7 +1038,7 @@ public class DatasetUtilitiesTests extends TestCase {
             pass = true;
         }
         assertTrue(pass);
-        
+
         // null range throws IllegalArgumentException
         pass = false;
         try {
@@ -1224,7 +1224,7 @@ public class DatasetUtilitiesTests extends TestCase {
                 DatasetUtilities.iterateRangeBounds(d));
 
         d = new TestIntervalCategoryDataset();
-        d.addItem(null, 2.0, 3.0, "R1", "C1");
+        d.addItem(null, new Double(2.0), new Double(3.0), "R1", "C1");
         assertEquals(new Range(2.0, 3.0),
                 DatasetUtilities.iterateRangeBounds(d));
 
@@ -1234,17 +1234,17 @@ public class DatasetUtilitiesTests extends TestCase {
         assertNull(DatasetUtilities.iterateRangeBounds(d));
 
         d = new TestIntervalCategoryDataset();
-        d.addItem(1.0, null, null, "R1", "C1");
+        d.addItem(new Double(1.0), null, null, "R1", "C1");
         assertEquals(new Range(1.0, 1.0),
                 DatasetUtilities.iterateRangeBounds(d));
 
         d = new TestIntervalCategoryDataset();
-        d.addItem(null, 1.0, null, "R1", "C1");
+        d.addItem(null, new Double(1.0), null, "R1", "C1");
         assertEquals(new Range(1.0, 1.0),
                 DatasetUtilities.iterateRangeBounds(d));
 
         d = new TestIntervalCategoryDataset();
-        d.addItem(null, null, 1.0, "R1", "C1");
+        d.addItem(null, null, new Double(1.0), "R1", "C1");
         assertEquals(new Range(1.0, 1.0),
                 DatasetUtilities.iterateRangeBounds(d));
     }
@@ -1255,7 +1255,7 @@ public class DatasetUtilitiesTests extends TestCase {
     public void testBug2849731() {
         TestIntervalCategoryDataset d = new TestIntervalCategoryDataset();
         d.addItem(2.5, 2.0, 3.0, "R1", "C1");
-        d.addItem(4.0, null, null, "R2", "C1");
+        d.addItem(new Double(4.0), null, null, "R2", "C1");
         assertEquals(new Range(2.0, 4.0),
                 DatasetUtilities.iterateRangeBounds(d));
     }
