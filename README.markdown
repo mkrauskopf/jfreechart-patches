@@ -4,6 +4,11 @@ jfreechart-patches project contains [bunch of patches](#patch_list) against [JFr
 
   [JFreeChart]: http://www.jfree.org/jfreechart/ "JFreeChart"
 
+**Update**: seemingly the below note about inactivity is not true anymore. The JFreeChart project was [revived]
+again so hopefully this repository will be cancelled in the near future.
+
+  [revived]: https://sourceforge.net/mailarchive/forum.php?thread_name=4E9366C6.6010209%40object-refinery.com&forum_name=jfreechart-developers
+
 The reason for founding this project is recent inactivity in JFreeChart project. Maintaining patches
 in JFreeChart issue tracker (in combination with local repository) is cumbersome when number of
 patches grows.
