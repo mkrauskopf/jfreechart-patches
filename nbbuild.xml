@@ -17,7 +17,7 @@
     NOTE(mkrauskopf): likely there is better solution which I did not found.
     -->
     <target name="test">
-        <ant antfile="${basedir}/ant/build.xml" target="test" inheritall="false" />
+        <ant antfile="${basedir}/ant/build.xml" target="test" />
     </target>
 
     <import file="nbproject/build-impl.xml"/>
