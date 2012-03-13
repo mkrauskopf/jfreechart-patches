@@ -275,6 +275,12 @@ public class SpiderWebPlotTests extends TestCase {
         assertFalse(p1.equals(p2));
         p2.setAxisLineStroke(new BasicStroke(1.1f));
         assertTrue(p1.equals(p2));
+
+        BasicStroke headStroke = new BasicStroke(2);
+        p1.setHeadOutlineStroke(headStroke);
+        assertFalse(p1.equals(p2));
+        p2.setHeadOutlineStroke(headStroke);
+        assertTrue(p1.equals(p2));
     }
 
     /**

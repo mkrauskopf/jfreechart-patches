@@ -1925,6 +1925,10 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
                 that.urlGenerator)) {
             return false;
         }
+        if (!ObjectUtilities.equal(this.headOutlineStroke,
+                that.headOutlineStroke)) {
+            return false;
+        }
         return true;
     }
 
