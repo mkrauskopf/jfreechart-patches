@@ -21,7 +21,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates.
  * Other names may be trademarks of their respective owners.]
  *
  * ------------------
@@ -167,7 +167,8 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
 
     /**
      * Length of the tick mark.
-     * (hardcoded for now, to be customizable in the future).
+     * <P>
+     * <B>Note</B>: hardcoded for now, to be customizable in the future.
      */
     private static final double TICK_MARK_LENGTH = 6d;
 
@@ -200,14 +201,24 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
     /** The dataset. */
     private CategoryDataset dataset;
 
-    /** The maximum value we are plotting against on each category axis */
+    /** The maximum value we are plotting against on each category axis. */
     private Double maxValue;
 
+    /**
+     * Maximum values of individual categories. Note that the field
+     * <code>maxValue</code> has always higher priority. If it is set this field
+     * is ignored.
+     */
     private Map/*<Integer, Double>*/ maxValues;
 
     /** The origin common for all categories axes. */
     private Double origin;
 
+    /**
+     * Origins for individual categories. Note that the field
+     * <code>origin</code> has always higher priority. If it is set this field
+     * is ignored.
+     */
     private Map/*<Integer, Double>*/ origins;
 
     /**
@@ -547,12 +558,14 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
     /**
      * Returns maximum value for a particular category.
      *
+     * @param cat the category of interest
      * @return The maximum value.
      *
      * @see #setMaxValue(Double)
      */
     public Double getMaxValue(int cat) {
-        return maxValue == null ? (Double) maxValues.get(new Integer(cat)) : maxValue;
+        return maxValue == null
+                ? (Double) maxValues.get(new Integer(cat)) : maxValue;
     }
 
     /**
@@ -569,9 +582,12 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
 
     /**
      * Sets maximum value for category.
+     *
+     * @param cat the category of interest
+     * @param maxValue the maximum value for the category
      */
-    public void setMaxValue(int cat, Double value) {
-        maxValues.put(new Integer(cat), value);
+    public void setMaxValue(int cat, Double maxValue) {
+        maxValues.put(new Integer(cat), maxValue);
         fireChangeEvent();
     }
 
@@ -581,9 +597,12 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
 
     /**
      * Sets origin for category.
+     *
+     * @param cat the category of interest
+     * @param origin the origin for the category
      */
-    public void setOrigin(int cat, Double value) {
-        origins.put(new Integer(cat), value);
+    public void setOrigin(int cat, Double origin) {
+        origins.put(new Integer(cat), origin);
         fireChangeEvent();
     }
 
@@ -1166,19 +1185,40 @@ public class SpiderWebPlot extends Plot implements Cloneable, Serializable {
         fireChangeEvent();
     }
 
+    /**
+     * Whether tick marks and labels are visible.
+     *
+     * @return the visibility of tick marks
+     */
     public boolean isAxisTickVisible() {
         return axisTickVisible;
     }
 
+    /**
+     * Set whether tick marks and labels shall be visible.
+     *
+     * @param visible the visibility of tick marks
+     */
     public void setAxisTickVisible(boolean visible) {
         this.axisTickVisible = visible;
         fireChangeEvent();
     }
 
+    /**
+     * Whether data points with values of out of axis range are drawn.
+     *
+     * @return are data points with values of out of axis drawn?
+     */
     public boolean isDrawOutOfRangePoints() {
         return drawOutOfRangePoints;
     }
 
+    /**
+     * Set whether data points with values of out of axis range shall be drawn.
+     *
+     * @param drawOutOfRangePoints shall be the points with values of out of
+     *        axis range drawn
+     */
     public void setDrawOutOfRangePoints(boolean drawOutOfRangePoints) {
         this.drawOutOfRangePoints = drawOutOfRangePoints;
         fireChangeEvent();
