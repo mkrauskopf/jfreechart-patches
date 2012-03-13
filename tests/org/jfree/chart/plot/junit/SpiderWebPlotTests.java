@@ -21,7 +21,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates.
  * Other names may be trademarks of their respective owners.]
  *
  * -----------------------
@@ -79,6 +79,8 @@ import org.jfree.util.TableOrder;
  * Tests for the {@link SpiderWebPlot} class.
  */
 public class SpiderWebPlotTests extends TestCase {
+
+    private static final double EPSILON = 0.0000001;
 
     /**
      * Returns the tests as a test suite.
@@ -282,6 +284,12 @@ public class SpiderWebPlotTests extends TestCase {
         SpiderWebPlot p1 = new SpiderWebPlot(new DefaultCategoryDataset());
         Rectangle2D legendShape = new Rectangle2D.Double(1.0, 2.0, 3.0, 4.0);
         p1.setLegendItemShape(legendShape);
+        p1.setOrigin(0, new Double(-1));
+        p1.setOrigin(1, new Double(-3));
+        p1.setMaxValue(0, new Double(4));
+        p1.setMaxValue(1, new Double(6));
+        BasicStroke headStroke = new BasicStroke(2);
+        p1.setHeadOutlineStroke(headStroke);
         SpiderWebPlot p2 = null;
         try {
             p2 = (SpiderWebPlot) p1.clone();
@@ -292,6 +300,11 @@ public class SpiderWebPlotTests extends TestCase {
         assertTrue(p1 != p2);
         assertTrue(p1.getClass() == p2.getClass());
         assertTrue(p1.equals(p2));
+        assertEquals("origin 1", -1, p2.getOrigin(0).doubleValue(), EPSILON);
+        assertEquals("origin 2", -3, p2.getOrigin(1).doubleValue(), EPSILON);
+        assertEquals("max 1", 4, p2.getMaxValue(0).doubleValue(), EPSILON);
+        assertEquals("max 2", 6, p2.getMaxValue(1).doubleValue(), EPSILON);
+        assertEquals("head stroke", headStroke, p2.getHeadOutlineStroke());
 
         // change the legendItemShape
         legendShape.setRect(4.0, 3.0, 2.0, 1.0);
